@@ -7,6 +7,7 @@ from detectron2.data import (
     build_detection_train_loader,
 )
 from detectron2.engine import default_argument_parser, default_setup, launch, DefaultTrainer
+from detectron2.evaluation import DatasetEvaluators
 
 
 
@@ -16,8 +17,8 @@ from dataset.my_mapper import MyDatasetMapper
 from transforms.my_resize import MyResize
 from modeling.backbone.my_build import register_my_backbone
 from modeling.roi_heads.roi_cls import register_roi_cls
+from modeling.meta_arch.my_rcnn import register_my_rcnn
 from additional_cfg import set_additional_cfg
-
 
 class Trainer(DefaultTrainer):
     @classmethod
@@ -32,6 +33,12 @@ class Trainer(DefaultTrainer):
         return build_detection_train_loader(cfg, mapper=MyDatasetMapper(cfg, is_train=True, augmentations=[
         MyResize(cfg.INPUT.RESIZE_SHORT, cfg.INPUT.RESIZE_LONG)]))
 
+    @classmethod
+    def build_evaluator(cls, cfg, dataset_name):
+        evaluator_list = []
+        # TODO: implement evaluator
+
+        return DatasetEvaluators(evaluator_list)
 
 def setup(args):
     """
@@ -52,6 +59,7 @@ def register_all(cfg):
     register_all_ade(cfg.DATASETS.ADE_ROOT)
     register_my_backbone()
     register_roi_cls()
+    register_my_rcnn()
 
 def main(args):
     cfg = setup(args)

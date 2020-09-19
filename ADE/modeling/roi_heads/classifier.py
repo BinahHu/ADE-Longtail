@@ -37,6 +37,9 @@ class Classifier(nn.Module):
 
         return loss, acc, category_accuracy
 
+    def predict(self, x):
+        return self.fc_512(x)
+
 
 class CosClassifier(nn.Module):
     def __init__(self, num_classes, in_channels, pooler_resolution):

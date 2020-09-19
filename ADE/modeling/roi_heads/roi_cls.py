@@ -31,7 +31,7 @@ class ROI_CLS(ROIHeads):
         assert not cfg.MODEL.KEYPOINT_ON
         assert len(self.in_features) == 1
 
-        self.pre_pooler = nn.AvgPool2d(kernel_size=3, stride=1)
+        self.pre_pooler = nn.AvgPool2d(kernel_size=3, stride=1, padding=1)
 
         self.pooler = ROIPooler(
             output_size=pooler_resolution,
@@ -59,18 +59,13 @@ class ROI_CLS(ROIHeads):
         """
         See :meth:`ROIHeads.forward`.
         """
-
         del images
-
         if self.training:
             assert targets
             proposals = self.label_and_sample_proposals(proposals, targets)
         del targets
-
         proposal_boxes = [x.proposal_boxes for x in proposals]
-        #gt_labels = [x.gt_classes for x in proposals]
-        gt_labels = torch.cat([x.gt_classes for x in proposals], dim = 0)
-        #gt_labels = torch.stack([x.gt_classes for x in proposals])
+
 
         for k, v in features.items():
             features[k] = self.pre_pooler(v)
@@ -84,7 +79,7 @@ class ROI_CLS(ROIHeads):
 
 
         if self.training:
-
+            gt_labels = torch.cat([x.gt_classes for x in proposals], dim=0)
             loss, acc, category_accuracy = self.classifier([flatten_features, gt_labels])
             storage = get_event_storage()
             storage.put_scalar("acc", acc * 100)
@@ -102,7 +97,7 @@ class ROI_CLS(ROIHeads):
 
             return [], {"cls_loss": loss}
         else:
-            return flatten_features
+            return self.classifier.predict(flatten_features), []
 
     def forward_with_given_boxes(self, features, instances):
         """
